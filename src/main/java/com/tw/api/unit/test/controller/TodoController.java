@@ -29,7 +29,7 @@ public class TodoController {
     @GetMapping
     public HttpEntity<Collection<ResourceWithUrl>> getAll() {
         List<ResourceWithUrl> resourceWithUrls = todoRepository.getAll().stream()
-                .map(todo -> toResource(todo))
+                .map(this::toResource)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(resourceWithUrls);
     }
@@ -39,11 +39,9 @@ public class TodoController {
 
         Optional<Todo> todoOptional = todoRepository.findById(id);
 
-        if (!todoOptional.isPresent()) {
-            return ResponseEntity.notFound().build();
-        }
+        return todoOptional.map(todo -> respondWithResource(todo, OK))
+                .orElseGet(() -> ResponseEntity.notFound().build());
 
-        return respondWithResource(todoOptional.get(), OK);
     }
 
     @PostMapping(headers = {"Content-type=application/json"})
